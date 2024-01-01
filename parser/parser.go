@@ -386,7 +386,9 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
-		p.nextToken()
+		if !p.expectPeek(token.IDENT) {
+			return nil
+		}
 		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 		identifiers = append(identifiers, ident)
 	}
