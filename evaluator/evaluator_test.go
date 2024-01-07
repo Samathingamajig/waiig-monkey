@@ -227,6 +227,10 @@ func TestErrorHandling(t *testing.T) {
 			"foobar",
 			"identifier not found: foobar",
 		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
@@ -298,5 +302,53 @@ func TestFunctionApplication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		testIntegerObject(t, testEval(tt.input), tt.expected)
+	}
+}
+
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
+func TestStringEquality(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"\"banana\" == \"banana\"", true},
+		{"\"banana\" != \"banana\"", false},
+		{"\"ban\" + \"ana\" == \"banana\"", true},
+		{"\"ban\" + \"ana\" != \"banana\"", false},
+		{"\"banana\" == \"cucumber\"", false},
+		{"\"banana\" != \"cucumber\"", true},
+	}
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		b, ok := evaluated.(*object.Boolean)
+		if !ok {
+			t.Fatalf("object is not Boolean. got=%T (%+v)", evaluated, evaluated)
+		}
+		if b.Value != test.expected {
+			t.Errorf("String comparison has wrong value. got=%t", b.Value)
+		}
 	}
 }
